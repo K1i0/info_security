@@ -120,3 +120,55 @@ generateCommonKey();
 // console.log(isPrime(3563412));
 // console.log(generatePrime());
 // console.log(generatePrime());
+
+function cryptoPow(base, exp, mod) {
+    let result = 1;
+    if (exp === 0) {
+        return 1;
+    }
+    while (exp) {
+        if (exp & 1) {
+            result = result * (base % mod);
+            exp = exp - 1;
+        } else {
+            base = base * (base % mod);
+            exp >>= 1
+        }
+    }
+    return (result % mod);
+}
+
+// Вычисление дискретного логарифма
+function cryptoFindEqual(u, v, m) {
+    let map = new Map();
+    for (let i = 1; i <= m; i++) {
+        map.set(u[i - 1], i); //Исходные индексы нумеровались с 1, поэтому значения + 1
+    }
+    for (let j = 1; j <= m; j++) {
+        if (map.has(v[j - 1])) {
+            console.log(`i: ${map.get(v[j - 1])}, j: ${j}`);
+            return [map.get(v[j - 1]), j];
+        }
+    }
+}
+
+// a = g^x (mod p), find x
+function findL(a, g, p) {
+    let m = Math.ceil(Math.sqrt(p));
+    // console.log(m);
+    let b = cryptoPow(g, m, p);
+    // console.log(b);
+    let u = [];
+    let v = [];
+    for (let i = 1; i <= m; i++) {
+        u.push(cryptoPow(b, i, p));
+        v.push(cryptoPow(a * cryptoPow(g, i, p), 1, p));
+    }
+    // console.log(u);
+    // console.log(v);
+    let ij = cryptoFindEqual(u, v, m);
+    let x = cryptoPow(m * ij[0] - ij[1], 1, p - 1);
+    console.log(`x: ${x}`);
+}
+
+findL(13, 7, 229)
