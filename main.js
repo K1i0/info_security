@@ -26,7 +26,21 @@ let data2 = {p: 23, g: 5, cb: 13, db: 21};
 encryptionElgamal(data2, 15, 1);
 console.log('/////////////////////////////////////////////////////////');
 encryptionElgamal();
-console.log('/////////////////////////////////////////////////////////');
-encryptionVernam("hello", 5);
-console.log('/////////////////////////////////////////////////////////');
-encryptionRSA();
+
+console.log('///////////////////////Vernam//////////////////////////////////');
+let dataVernam = {message: "hello", key: []};
+let encodedVernam = encodeVernam(dataVernam);
+
+console.log('Encoded message: ');
+for (let i = 0; i < dataVernam.message.length; i++) {
+    console.log(`${dataVernam.message[i]}: ${encodedVernam[i]} (key: ${dataVernam.key[i]})`);
+}
+
+let decodedVernam = decodeVernam(encodedVernam, dataVernam.key);
+console.log(`Decoded message: ${decodedVernam}`);
+
+console.log('////////////////////RSA/////////////////////////////////////');
+let dataRSA = {p: 3, q: 11, n: 33, d: 3, phi: 0, c: 0};
+dataRSA.phi = (dataRSA.p-1)*(dataRSA.q-1);
+encryptionRSA(dataRSA, 15);
+// encryptionRSA(undefined, 101);

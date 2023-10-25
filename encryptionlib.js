@@ -155,84 +155,104 @@ function encryptionElgamal(data = undefined, message=10, ord=5) {
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//data = {message: '', key: []}
+//Init key for message 
+function encryptionVernamInitKey(data) {
+    data.key = new Uint8Array(data.message.length);
+    for (let i = 0; i < data.message.length; i++) {
+        data.key[i] = Math.floor(Math.random() * (255 - 0) + 0);
+    }
+}
+
 // m ^ k -> e
 // e ^ k -> m
 //value - string
-function encryptionVernam(message, k) {
-    let byteArray = new Uint8Array(message.length);
+function encodeVernam(data) {
+    encryptionVernamInitKey(data);
+    let processedMessage = new Uint8Array(data.message.length);
 
-    for (let i = 0; i < message.length; i++) {
-        byteArray[i] = message[i].charCodeAt(0) ^ k;
-        console.log(byteArray[i]);
+    //encoding/decoding
+    for (let i = 0; i < data.message.length; i++) {
+        processedMessage[i] = data.message[i].charCodeAt(0) ^ data.key[i];
     }
 
-    for (let i = 0; i < message.length; i++) {
-        console.log(String.fromCharCode(byteArray[i] ^ k));
-    }
-
-    return byteArray;
+    return processedMessage;
 }
 
+//values - byte arrays (data, key)
+function decodeVernam(data, key) {
+    let processedMessage = '';
+    for (let i = 0; i < data.length; i++) {
+        processedMessage += String.fromCharCode(data[i] ^ key[i]);
+    }
+    return processedMessage;
+}
 
 //////////////////////////////////////////////////////////////////////
+function encryptionRSAGenQ(ord=8) {
+    return encryptionGenP(ord);
+}
+
 function encryptionRSArGenD(phi, ord=8) {
     let d;
     do {
         d = generateBigRandomNumber(ord);
-    } while (!(d < phi) || !(cryptoGCD(phi, d) === 1));
+    } while (!(d < phi) || !(cryptoGCD(d, phi) === 1));
     return d;
 }
 
 function encryptionRSAGenC(d, phi) {
     let coef_c = {x: 0, y: 0};
     cryptoGCD(d, phi, coef_c);
-    return coef_c.x > 0 ? coef_c.x : coef_c.x + phi - 1;
+    return coef_c.x > 0 ? coef_c.x : coef_c.x + phi;
 }
 
-function encryptionRSA(data=undefined, message=10, ord=5) {
-    // if (data === undefined) {
-    //     data = {p: 0, q: 0, n: 0, d: 0};
-    //     //PARAMS B//////////////////////
-    //     //phi = (P-1)*(Q-1)
-    //     let P = encryptionGenP(ord);
-    //     console.log(`P: ${P}`);
-    //     let Q = encryptionGenP(ord); //just use GenP to generate big prime number
-    //     console.log(`Q: ${Q}`);
+//data={p: 0, q: 0, n: 0, d: 0, phi: 0, c: 0};
+function initialRSA(data, ord=2) {
+
+    data.p = encryptionGenP(ord);
         
-    //     //Public N
-    //     let N = P * Q;
-    //     console.log(`N: ${N}`);
+    do {
+        data.q = encryptionRSAGenQ(ord);
+    } while(data.q === data.p);
 
-    //     let Phi = (P - 1) * (Q - 1);
-    //     console.log(`Phi: ${Phi}`);
+    data.n = data.p * data.q;
 
-    //     // let d = encryptionRSArGenD(Phi, 5);
-    //     // console.log(`db: ${d}`);
+    data.phi = (data.p - 1) * (data.q - 1);
 
-    //     // //private
-    //     // let c = encryptionRSAGenC(d, Phi);
-    //     // console.log(`cb: ${c}`);
-    //     // //PARAMS B//////////////////////
-    // }
-    data = {p: 3, q: 11, n: 33, d: 3};
-    let Phi = (data.p - 1) * (data.q - 1);
-    console.log(`Phi: ${Phi}`);
+    data.d = encryptionRSArGenD(data.phi, ord);
 
-    let c = encryptionRSAGenC(data.d, Phi);
-    console.log(`cb: ${c}`);
+    data.c = encryptionRSAGenC(data.d, data.phi);
+}
 
-    if (message < data.n) {
-        console.log(`Source message: ${message}`);
-        //A generate k, r, e (encrypt)
-        let e = cryptoPow(message, data.d, data.n);
-        //B decodes message
-        let decoded_message = cryptoPow(e, c, data.n);
-        console.log(`Decoded message (B)): ${decoded_message}`);
+function encodeRSA(message=10, data=undefined) {
+    if (data === undefined) {
+        return undefined;
+    } else if (message >= data.n) {
+        console.error(`Message ${message} bigger than N: ${data.n}`);
+        return undefined;
     } else {
-        /*
-            В настоящее время такой шифр, как правило, используется для пере-
-            дачи чисел, например, секретных ключей, значения которых меньше
-            p. Таким образом, мы будем рассматривать только случай m < p.
-        */
+        return cryptoPow(message, data.d, data.n);
     }
+}
+
+function decodeRSA(emessage, data) {
+    return cryptoPow(emessage, data.c, data.n);
+}
+
+function encryptionRSA(data=undefined, message=10, ord=2) {
+    if (data === undefined) {
+        data = {p: 0, q: 0, n: 0, d: 0, phi: 0, c: 0};
+        initialRSA(data);
+    } else {
+        data.c = encryptionRSAGenC(data.d, data.phi);
+    }
+    
+    let encoded = encodeRSA(message, data, ord);
+    let decoded = decodeRSA(encoded, data);
+
+    console.log(`Source message: ${message}`);
+    console.log(`Encoded message: ${encoded}`);
+    console.log(`Decoded message: ${decoded}`);
 }
