@@ -44,3 +44,5 @@ let dataRSA = {p: 3, q: 11, n: 33, d: 3, phi: 0, c: 0};
 dataRSA.phi = (dataRSA.p-1)*(dataRSA.q-1);
 encryptionRSA(dataRSA, 15);
 // encryptionRSA(undefined, 101);
+console.log(sha256("HelloWorld!"));
+
