@@ -218,7 +218,6 @@ function initialRSA(data, ord=2) {
     } while(data.q === data.p);
 
     data.n = data.p * data.q;
-    console.log('NNNNNNN: ' + data.n);
 
     data.phi = (data.p - 1) * (data.q - 1);
 
