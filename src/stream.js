@@ -6,6 +6,7 @@ document.getElementById('sig_button').addEventListener('click', function() {
     reader.readAsText(file);
     reader.onload = function () {
         globalDataToSignature = reader.result;
-        signatureRSA(reader.result);
+        // signatureRSA(reader.result);
+        signatureElgamal(reader.result);
     }
 });
