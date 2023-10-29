@@ -138,3 +138,109 @@ async function signatureElgamal(data, params=undefined, ord=5)  {
     console.log(`Signature check status: ${statusSignCheck}`);
     console.log('///////////////////////////////////////////////////////////////////////////');
 }
+
+//////////////////////////////////////////DSA///////////////////////////////////////////////////////////////////////////////////
+function generateBigRandomNumberGOST(min=1, max=10, ord=1) {
+    return Math.floor(Math.random() * (max - min) + min)
+}
+
+async function signatureBasicDSA(data, params=undefined, ord=5)  {
+    console.log('////////////////////////////BSDIC DIGIT SIGNATURE ALGORITHM///////////////////////////////////////////////');
+
+    ///INIT SYSTEM/////////////////////////////////////////////////////////
+    let q = generateBigPrime(ord);
+    let b;
+    let p;
+
+    do {
+        b = generateBigRandomNumber(ord / 2);
+        p = b * q + 1;
+    } while (!isPrime(p))
+
+    let a;
+    do {
+        a = generateBigRandomNumberGOST(2, p - 1);
+    } while(!(cryptoPow(a, q, p) === 1))
+
+    //PRIVATE key
+    let x;
+    do {
+        x = generateBigRandomNumber(ord);
+    } while(!(x > 0 && x < q))
+
+    //OPEN key
+    let y = cryptoPow(a, x, p);
+    console.log(`p: ${p}, q: ${q}, a: ${a}, x: ${x}, y: ${y}`);
+    ///INIT SYSTEM DONE/////////////////////////////////////////////////////////
+
+    ///GENERATE SIGNATURE//////////////////////////////////////////////////////
+    //1 < h(m) < q
+    let hashString = await hashData(data);
+    console.log(`Hash (string): ${hashString}`);
+
+    let hashByte = [];
+    for (let sym in hashString) {
+        hashByte.push(hashString[sym].charCodeAt(0));
+    }
+
+    let k;
+    let s = [];
+    let r;
+
+    let isNeedToRepeatStep = false;
+    do {
+        do {    
+            do {
+                k = generateBigRandomNumber(ord);
+            } while(!(k > 0 && k < q))
+
+            r = cryptoPow(cryptoPow(a, k, p), 1, q);
+        } while(r === 0)
+
+        
+        for (let key in hashByte) {
+            s.push(cryptoPow((k * hashByte[key] + x * r), 1, q));
+            if (s[key] === 0) {
+                isNeedToRepeatStep = true;
+                break;
+            }
+        }
+    } while(isNeedToRepeatStep)
+
+    //signature <message; r, s>
+    console.log(`Signature <message; r, s>:`);
+    console.log(`<${data}; ${r}, ${s}>`);
+
+    //Check signature
+    let statusSignCheck = true;
+    statusSignCheck = (r > 0 && r <  q);
+    if (statusSignCheck)
+    for (let key in s) {
+        statusSignCheck = (statusSignCheck === false) ? false : (s[key] > 0 && s[key] < q);
+    }
+
+    let u1 = [];
+    let u2 = [];
+    for (let key in s) {
+        let reverseH = signatureElgamalGenReverseK(hashByte[key], q);
+        u1.push(cryptoPow(s[key] * reverseH, 1, q));
+
+        u2.push(q - cryptoPow(Math.abs(0 - r * reverseH), 1, q));
+    }
+    
+    console.log(`u1: ${u1}`);
+    console.log(`u2: ${u2}`);
+
+    let v = [];
+    for (let key in u1) {
+        let b1 = cryptoPow(cryptoPow(a, u1[key], p) * cryptoPow(y, u2[key], p), 1, p);
+        v.push(cryptoPow(b1, 1, q));
+    }
+    console.log(`v: ${v}`);
+
+    for (let key in v) {
+        statusSignCheck = (statusSignCheck === false) ? false : (v[key] === r);
+    }
+    console.log(`Signature check status: ${statusSignCheck}`);
+    console.log('///////////////////////////////////////////////////////////////////////////');
+}

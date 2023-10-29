@@ -7,6 +7,7 @@ document.getElementById('sig_button').addEventListener('click', function() {
     reader.onload = function () {
         globalDataToSignature = reader.result;
         // signatureRSA(reader.result);
-        signatureElgamal(reader.result);
+        // signatureElgamal(reader.result);
+        signatureBasicDSA(reader.result);
     }
 });
