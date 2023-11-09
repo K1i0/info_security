@@ -6,5 +6,11 @@
 | Бинарное возведение в степень по модулю | `cryptoPow(base, exp, mod)` | <ul><li>_base_ - основание (число, возводимое в степень)</li><li>_exp_ - степень</li><li>_mod_ - модуль</li></ul> | Результат возведения числа в степень по модулю _mod_ | Бинарное (двоичное) возведение в степень — это приём, позволяющий возводить любое число в n-ую степень за $O(log n)$ умножений (вместо n умножений при обычном подходе). |
 | ------ | ------ | <ul><li></li></ul> | ------ | ------ |
 
+## Запуск
+> Для запуска можно использовать расширение для Visual Studio Code - [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
+
+![Расширение Live Server для Visual Studio Code](/data/live_server.png)
+![Запуск кода при помощи Live Server](/data/run.png)
+
 ## Полезные ссылки
 > [Бинарное возведение в степень (без учета модуля)](https://e-maxx.ru/algo/binary_pow)
