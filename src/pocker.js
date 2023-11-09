@@ -7,7 +7,7 @@ const card_types = [
 ]
 
 const card_count = 52;
-const player_count = 2; //player_count <= card_count
+// const player_count = 2; //player_count <= card_count
 
 class Card {
     #identifier; // Идентификатор
@@ -111,8 +111,8 @@ class Player {
         this.#params.d = d;
     }
 
-    show_data() {
-        console.log(`Player #${this.#identifier} with params (c: ${this.#params.c}, d: ${this.#params.d}). Has cards: `);
+    show_data(name='Player') {
+        console.log(`${name} #${this.#identifier ?? ''} with params (c: ${this.#params.c}, d: ${this.#params.d}). Has cards: `);
         for (let card of this.#cards) {
             console.log(`id: ${card.identifier}, ${card.type + card.suit}`);
         } 
@@ -133,8 +133,12 @@ class Player {
     }
 }
 
-
-function game() {
+// Безопасность обеспечивается предварительным шифрованием колоды при помощи секретных ключей и тем, что игрок, которому принадлежат карты, дешифрует их последним ("приватно")
+// Честность обеспечивается методом shuffle (произвольной перетасовкой карт после шифрования очередным игроком), класса Player
+function game(playerCount=5, pocketCardCount=2, onTableCards=5) {
+    if (playerCount * pocketCardCount > card_count) {
+        return;
+    }
     //Каждому игроку выдается m карт, m1 + m2...+mi <= card_count, 1 <= i <= player_count
     let dk = new Deck();
 
@@ -149,7 +153,7 @@ function game() {
     } while(!isPrime(p));
 
     let players = [];
-    for (let i = 0; i < player_count; i++) {
+    for (let i = 0; i < playerCount; i++) {
         players.push(new Player(i));
         //Каждый игрок формирует пару секретных ключей
         players[i].generate_secret_keys(p);
@@ -158,11 +162,10 @@ function game() {
     }
 
     // Колода после шифрования
-    console.log('Колода после шифрования: ');
+    console.log('\nКолода после шифрования: '.padStart(120, '-'));
     dk.show_deck();
 
-    const m = 5; // Количество карт, которое нужно раздать каждому игроку
-    for (let i = 0; i < m; i++) {
+    for (let i = 0; i < pocketCardCount; i++) {
         let cd;
         for (const player of players) {
             cd = dk.deck.pop();
@@ -171,14 +174,17 @@ function game() {
         }
     }
 
-    console.log("После раздачи карт, у каждого игрока: ");
+    console.log('\nКолода после раздачи: '.padStart(120, '-'));
+    dk.show_deck();
+
+    console.log('\nПосле раздачи карт, у каждого игрока: '.padStart(120, '-'));
     for (const player of players) {
         player.show_data();
     }
     setTimeout(1000);
     // Расшифровка карт игроков
-    for (let i = 0; i < player_count; i++) {
-        for (let j = 0; j < player_count; j++) {
+    for (let i = 0; i < playerCount; i++) {
+        for (let j = 0; j < playerCount; j++) {
             if (i !== j) {
                 // Дешифровка каждой карты i-го игрока у j-го
                 for (card of players[i].cards) {
@@ -191,8 +197,23 @@ function game() {
         }
     }
 
-    console.log("После расшифровки, у каждого игрока: ");
+    console.log('\nПосле расшифровки, у каждого игрока: '.padStart(120, '-'));
     for (const player of players) {
         player.show_data();
     }
+
+    console.log('\nНа столе карты:  '.padStart(120, '-'));
+    let table = new Player(); // Представление стола как отдельного игрока
+    for (let i = 0; i < onTableCards; i++) {
+        table.take_card(dk.deck.pop());
+    }
+
+    // Расшифровка карт на столе, здесь уже порядок расшифровки не важен, т.к. карты на столе известны всем
+    for (let i = 0; i < playerCount; i++) {
+        for (card of table.cards) {
+            players[i].recover(card, p);
+        }
+    }
+
+    table.show_data('Table');
 }
