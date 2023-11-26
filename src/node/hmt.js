@@ -10,6 +10,12 @@
 // Вернуть бинарное представление числа (строку)
 const binary = (n) => {return n.toString(2);}
 
+// "Конкатенация" (сцепление) двух чисел - элемента матрицы смежности 
+// (0 / 1) и случайного числа r (2 старших бита которого не равны 1)
+const concatNumbers = (a, b) => {
+    return (a << 1) | b;
+}
+
 class Matrix {
     #n; //vertexes
     #m; //edges
@@ -28,17 +34,13 @@ class Matrix {
     }
 
     fillMatrixByValue() {
-        
+
     }
 
     fillMatrixFromFile() {
         
     }
 }
-
-
-
-
 
 class Node {
     #id; // Идентификатор вершины (узла)
@@ -49,5 +51,12 @@ class Node {
 
     }
 }
+
+let a = 123545;
+let b = 0;
+
+console.log(binary(a));
+console.log(binary(b));
+console.log(binary(concatNumbers(a, b)));
 
 console.log(binary(11));
