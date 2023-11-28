@@ -16,32 +16,6 @@ const concatNumbers = (a, b) => {
     return (a << 1) | b;
 }
 
-class Matrix {
-    #n; //vertexes
-    #m; //edges
-    #matrix;
-
-    // Построение матрицы смежности
-    constructor(n=4, m=4) {
-        this.#n = n;
-        this.#m = m;
-
-        this.#matrix = new Array(n);
-        // Матрица смежности (квадратная)
-        for (let i = 0; i < n; i++) {
-            this.#matrix[i] = new Array(n);
-        }
-    }
-
-    fillMatrixByValue() {
-
-    }
-
-    fillMatrixFromFile() {
-        
-    }
-}
-
 class Node {
     #id; // Идентификатор вершины (узла)
     #vertex=[]; // Вершины, с которым соединена данная
