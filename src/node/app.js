@@ -30,6 +30,7 @@ http.createServer(function(request,response){
     let testMatrix = new mx.Matrix();
     testMatrix.readFormatMatrix();
     testMatrix.printMatrix();
+    testMatrix.hasHamCycle();
 
 
     PythonShell.run('./visual.py', null).then(messages=>{

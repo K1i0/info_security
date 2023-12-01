@@ -8,6 +8,7 @@ class Matrix {
     #n=0; //vertexes
     #m=0; //edges
     #matrix=undefined;
+    #hasCycle=false;
 
     // Построение матрицы смежности
     constructor(n=4, m=4) {
@@ -139,6 +140,52 @@ class Matrix {
         }
         
         return true;
+    }
+
+    hasHamCycle() {
+        let path = new Array();
+        // Создать массив посещенных вершин и заполнить его значением false
+        let visited = new Array(this.#n).fill(false);
+
+        this.findHamCycle(0, path, visited);
+
+        if (!this.#hasCycle) {
+            console.log('Hamiltonian Cycle not found!');
+        }
+    }
+
+    findHamCycle(current=0, path=[], isVisited=[])
+    {
+        // Если все вершины включены в путь (найден Гамильтонов путь)
+        path.push(current);
+        if (path.length == this.#n) {
+            console.log(JSON.stringify(path));
+            // Соединена ли последняя вершина пути с первой (есть ли цикл)
+            if (this.#matrix[path[0]][path.at(-1)] == 1) {
+                this.#hasCycle = true;
+                return true;
+            } else {
+                // Удалить последнюю добавленную вершину из списка
+                path.pop();
+                return false;
+            }
+        }
+
+        // Если длина списка меньше, то текущая вершина current отмечается как посещенная
+        isVisited[current] = true;
+
+        // И осуществляется перебор дальнейших продолжений
+        for (let next = 0; next < this.#n; ++next) {
+            if (this.#matrix[current][next] === 1 && !isVisited[next]) {
+                // Найти первый подходящий цикл
+                if (this.findHamCycle(next, path, isVisited)) {
+                    return true;
+                }
+            }
+        }
+        isVisited[current] = false;
+        path.pop();
+        return false;
     }
 }
 
