@@ -1,9 +1,11 @@
+const crpt = require('./cryptolib.js');
+
 function encryptionGenP(ord=8) {
     let p;
     do {
-        let q = generateBigPrime(ord);
+        let q = crpt.generateBigPrime(ord);
         p = 2 * q + 1;
-    } while (!(isPrime(p)));
+    } while (!(crpt.isPrime(p)));
     return p;
 }
 
@@ -197,14 +199,14 @@ function encryptionRSAGenQ(ord=8) {
 function encryptionRSArGenD(phi, ord=8) {
     let d;
     do {
-        d = generateBigRandomNumber(ord);
-    } while (!(d < phi) || !(cryptoGCD(d, phi) === 1));
+        d = crpt.generateBigRandomNumber(ord);
+    } while (!(d < phi) || !(crpt.cryptoGCD(d, phi) === 1));
     return d;
 }
 
 function encryptionRSAGenC(d, phi) {
     let coef_c = {x: 0, y: 0};
-    cryptoGCD(d, phi, coef_c);
+    crpt.cryptoGCD(d, phi, coef_c);
     return coef_c.x > 0 ? coef_c.x : coef_c.x + phi;
 }
 
@@ -256,3 +258,5 @@ function encryptionRSA(data=undefined, message=10, ord=2) {
     console.log(`Encoded message: ${encoded}`);
     console.log(`Decoded message: ${decoded}`);
 }
+
+module.exports = {initialRSA}

@@ -1,9 +1,9 @@
 const http = require("http");
 const fs = require("fs");
-// const hmt = require("hmt");
+const hmt = require("./cryptoHmt.js");
 const mx = require("./matrix.js");
 const {PythonShell} = require('python-shell');
-const { default: test } = require("node:test");
+// const { default: test } = require("node:test");
 
 http.createServer(function(request,response){
     // response.writeHead(200, { 'Content-Type':'text/html'});
@@ -21,17 +21,20 @@ http.createServer(function(request,response){
         }
     });
 
-    let matrix = new mx.Matrix();
-    // matrix.initMatrix();
-    // matrix.printMatrix();
-    // matrix.writeMatrix();
-    // matrix.writeFormatMatrix();
+    // let testMatrix = new mx.Matrix(5, 5);
+    
+    // // Генерация матрицы смежности для графа с Гамильтоновым циклом
+    // do {
+    //     console.log('Init new matrix');
+    //     testMatrix.initMatrix();
+    //     testMatrix.tryHamCycle();
+    // } while(!testMatrix.hasCycle);
 
-    let testMatrix = new mx.Matrix();
-    testMatrix.readFormatMatrix();
-    testMatrix.printMatrix();
-    testMatrix.hasHamCycle();
+    // testMatrix.writeMatrix(); // Для отрисовки графа
+    // testMatrix.writeFormatMatrix(); // Для алгоритма
 
+    hmt.zeroKnowledgeProof();
+    
 
     PythonShell.run('./visual.py', null).then(messages=>{
         // Данные, которые были выведены python скриптом в консоль
@@ -40,7 +43,7 @@ http.createServer(function(request,response){
         }
         console.log('Python script finished');
     });
-}).listen(3000, "127.0.0.1",function(){
+}).listen(3001, "127.0.0.1",function(){
     console.log(`Сервер начал прослушивание запросов на порту 3000`);
 });
 

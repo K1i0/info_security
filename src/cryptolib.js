@@ -167,3 +167,5 @@ function findL(a, g, p) {
     let x = cryptoPow(m * ij[0] - ij[1], 1, p - 1);
     return x;
 }
+
+module.exports = {generateBigPrime, isPrime, generateBigRandomNumber, cryptoGCD, cryptoPow}
