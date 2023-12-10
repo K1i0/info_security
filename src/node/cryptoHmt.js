@@ -10,8 +10,6 @@ const crpt = require('../cryptolib.js');
 // 3) Боб об этом цикле не знает ничего и не имеет желания его искать, т.к.
 // это ооочень долго (NP-полная задача)
 
-
-
 function zeroKnowledgeProof() {
     let data = {p: 0, q: 0, n: 0, d: 0, phi: 0, c: 0};
     rsa.initialRSA(data, 4);
@@ -31,7 +29,6 @@ function zeroKnowledgeProof() {
     console.log('Source matrix: ');
     matrixG.printMatrix();
 
-    // ШАГ 1. Начало протокола
     // Алиса строит граф H, являющийся копией исходного графа
     // G, где у всех вершин новые, случайно выбранные номера
     let matrixH = new mx.Matrix(5, 5);
@@ -49,14 +46,12 @@ function zeroKnowledgeProof() {
     // Зашифрованная матрица
     let matrixF = new mx.Matrix(5, 5);
     matrixF.copyMatrix(matrixH);
-    // matrixF.printMatrix();
     matrixF.encryptMatrix(d, N);
 
     let stepCount = 3; // Количество итераций повторений протокола
     let questionNum = mx.getRandomNumber(0, 1);
     let isVerified = true;
     for (let t = 0; t < stepCount; t++) {
-
         switch (questionNum) {
             case 0:
                 console.log(`Выбран вопрос: 1. Каков гамильтонов цикл для графа H?`);
@@ -90,11 +85,11 @@ function zeroKnowledgeProof() {
                             if (transcriptions[i].v1 === transcriptions[j].v1) {
                                 isVerified = false;
                                 console.log("--------------NOT VERIFIED!----------------");
-                                console.log(`The vertex: ${transcriptions[i].v1} repeated (i: ${i}, j: ${j})`);
+                                console.log(`The vertex: ${transcriptions[i].v1} repeated (i: ${i}, j: ${j}, val: ${transcriptions[i].val})`);
                             } else if (transcriptions[i].v2 === transcriptions[j].v2) {
                                 isVerified = false;
                                 console.log("--------------NOT VERIFIED!----------------");
-                                console.log(`The vertex: ${transcriptions[i].v2} repeated (i: ${i}, j: ${j})`);
+                                console.log(`The vertex: ${transcriptions[i].v2} repeated (i: ${i}, j: ${j}, val: ${transcriptions[i].val})`);
                             }
                         }
                     }
@@ -123,7 +118,8 @@ function zeroKnowledgeProof() {
                 }
                 _H.decodeMatrix();
                 let _G = new mx.Matrix(5, 5);
-                _G.initShuffle(matrixG, permutation); // Получение перестановки для графа G по заданному порядку вершин
+                // Получение перестановки для графа G по заданному порядку вершин
+                _G.initShuffle(matrixG, permutation);
                 // Проверка: предъявленные перестановки действительно переводят граф G в граф H
                 let isSame = _G.compareMatrix(_H);
                 if (!isSame) {

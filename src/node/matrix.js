@@ -28,8 +28,7 @@ class Matrix {
     #hamPath=undefined; //Гаимльтонов путь
     #permutation=undefined;
 
-    // Построение матрицы смежности NxN
-    // Ready
+    // Построение матрицы смежности NxN с инициализацией нулями
     // input: n?, m?
     constructor(n=4, m=4) {
         this.#n = n;
@@ -37,10 +36,7 @@ class Matrix {
 
         this.#matrix = new Array(n);
         for (let i = 0; i < n; i++) {
-            this.#matrix[i] = new Array(n);
-            for (let j = 0; j < n; j++) {
-                this.#matrix[i][j] = 0;
-            }
+            this.#matrix[i] = new Array(n).fill(0);
         }
     }
 
@@ -64,13 +60,8 @@ class Matrix {
         return this.#permutation;
     }
 
-    // Ready. Случайная инициализация матрицы смежности (построение графа)
-    // out: true / false
+    // Случайная инициализация матрицы смежности (построение графа)
     initMatrix() {
-        if (this.#matrix === undefined) {
-            return false;
-        }
-
         // Флаг отсутствия связей (если все элементы строки равны 0)
         let isEmpty = true;
         for (let i = 0; i < this.#n; i++) {
@@ -95,8 +86,6 @@ class Matrix {
                 }
             } while(isEmpty);
         }
-
-        return true;
     }
 
     // Копировать матрицу смежности 
@@ -113,12 +102,8 @@ class Matrix {
         }
     }
 
-    // Ready
+    // Вывод матрицы смежности и Гамильтонова пути в графе (при наличии)
     printMatrix() {
-        if (this.#matrix === undefined) {
-            return false;
-        }
-
         let line = '';
         for (let i = 0; i <  this.#n; i++) {
             for (let j = 0; j <  this.#n; j++) {
@@ -168,7 +153,7 @@ class Matrix {
                     return false
                 }
                 // В методе записи дублируются ребра (Например, 1 0 и 0 1)
-                // Двойная работа, если не исправить дубли в записи
+                // Двойная работа, если не исправить дубли в записи (метод writeFormatMatrix)
                 this.#matrix[i][j] = this.#matrix[j][i] = 1;
             }
         }
@@ -320,36 +305,24 @@ class Matrix {
     // Кодирование матрицы путем сцепления чисел: r || M[i][j]
     // out: randNum[] - массив случайных чисел, использованных при кодировании
     encodeMatrix() {
-        if (this.#matrix === undefined) {
-            return false;
-        }
-
-        let randNum = [];
         for (let i = 0; i < this.#n; i++) {
             for (let j = 0; j < this.#n; j++) {
                 //generate random r
                 let r = getRandomNumber(1000, 10000);
-                randNum.push(r);
                 /*
-                    Алиса кодирует матрицу H, приписывая к 
-                    первоначально содержащимся в ней нулям и 
-                    единицам случайные числа rij по схеме
-                    ̃Hij = rij ‖ Hij .
+                    Алиса кодирует матрицу H, приписывая к первоначально содержащимся в ней нулям и 
+                    единицам случайные числа rij по схеме ̃Hij = rij ‖ Hij .
                 */
                 this.#matrix[i][j] = concatNumbers(r, this.#matrix[i][j]);
             }
         }
-
-        return randNum;
     }
 
-    // Заполнение матрицы с кодированием
     // Шифрование матрицы
+    // input: d, N - открытые параметры системы RSA
     encryptMatrix(d, N) {
         for (let i = 0; i < this.#n; i++) {
             for (let j = 0; j < this.#n; j++) {
-                // 
-                // console.log(`M[i][j]: ${this.#matrix[i][j]}, d: ${d}, N: ${N}\nResult: ${crpt.cryptoPow(this.#matrix[i][j], d, N)}\n`);
                 this.#matrix[i][j] = crpt.cryptoPow(this.#matrix[i][j], d, N);
             }
         }
@@ -357,18 +330,12 @@ class Matrix {
 
     // Вернуть список закодированных (_H) ребер графа (v1, v2, F[v1][v2])
     decryptEdgess(path, shuffle, c, N) {
-
         let transcriptions = new Array(path.length);
-
         for (let i = 0; i < path.length; i++) {
             transcriptions[i] = new Object();
             transcriptions[i].v1 = shuffle[path[i]];
             transcriptions[i].v2 = shuffle[path[i < path.length - 1 ? i + 1 : 0]];
-            // console.log(this.#matrix[transcriptions[i].v1][transcriptions[i].v2]);
-            // console.log(c);
-            // console.log(N);
             transcriptions[i].val = crpt.cryptoPow(this.#matrix[transcriptions[i].v1][transcriptions[i].v2], c, N);
-            // console.log(transcriptions[i].v1 + ' ' + transcriptions[i].v2 + ' ' + transcriptions[i].val);
         }
 
         return transcriptions;
@@ -376,10 +343,6 @@ class Matrix {
 
     // Декодирование матрицы (отбросить r, оставить только 0 или 1)
     decodeMatrix() {
-        if (this.#matrix === undefined) {
-            return false;
-        }
-
         for (let i = 0; i < this.#n; i++) {
             for (let j = 0; j < this.#n; j++) {
                 this.#matrix[i][j] = separateNumbers(this.#matrix[i][j]);
