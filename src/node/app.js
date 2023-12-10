@@ -36,13 +36,13 @@ http.createServer(function(request,response){
     hmt.zeroKnowledgeProof();
     
 
-    PythonShell.run('./visual.py', null).then(messages=>{
-        // Данные, которые были выведены python скриптом в консоль
-        if (messages.length > 0) {
-            console.log(messages);
-        }
-        console.log('Python script finished');
-    });
+    // PythonShell.run('./visual.py', null).then(messages=>{
+    //     // Данные, которые были выведены python скриптом в консоль
+    //     if (messages.length > 0) {
+    //         console.log(messages);
+    //     }
+    //     console.log('Python script finished');
+    // });
 }).listen(3001, "127.0.0.1",function(){
     console.log(`Сервер начал прослушивание запросов на порту 3000`);
 });

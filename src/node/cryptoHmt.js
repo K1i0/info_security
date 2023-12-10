@@ -1,5 +1,6 @@
 const rsa = require("../encryptionlib.js");
 const mx = require("./matrix.js");
+const crpt = require('../cryptolib.js');
 // Курсовая. Номер варианта: (16 % 3) + 1 = 2 (Гамильтонов цикл)
 // Необходимо  написать  программу,  реализующую  протокол 
 // доказательства с нулевым знанием для задачи «Гамильтонов цикл»
@@ -15,57 +16,137 @@ function zeroKnowledgeProof() {
     let data = {p: 0, q: 0, n: 0, d: 0, phi: 0, c: 0};
     rsa.initialRSA(data, 4);
 
+    //public key
     let N = data.n;
     let d = data.d;
+    //private key
+    let c = data.c;
+
+    console.log(`N: ${N}, d: ${d}, c: ${data.c}\n`);
 
     // Граф G
-    let matrix = new mx.Matrix(5, 5);
-    matrix.readFormatMatrix();
+    let matrixG = new mx.Matrix(5, 5);
+    matrixG.readFormatMatrix();
+    matrixG.readPath();
     console.log('Source matrix: ');
-    matrix.printMatrix();
+    matrixG.printMatrix();
 
     // ШАГ 1. Начало протокола
     // Алиса строит граф H, являющийся копией исходного графа
     // G, где у всех вершин новые, случайно выбранные номера
     let matrixH = new mx.Matrix(5, 5);
-    matrixH.buildPermutation();
+    // matrixH.buildPermutation();
+    let shuffle = matrixH.initShuffle(matrixG);
+    console.log('\nShuffle: ' + JSON.stringify(shuffle));
     console.log('\nIsomorph graph matrix: ');
     matrixH.printMatrix();
 
     matrixH.encodeMatrix();
-    console.log('Matrix H after encoding: ');
+    console.log('\nMatrix H after encoding: ');
     matrixH.printMatrix();
+    console.log('\n')
 
-    // let matrixF = new mx.Matrix();
     // Зашифрованная матрица
-    let matrixF = new mx.Matrix();
-    matrixF.fillWithEncodeMatrix(5, matrixH.matrix, d, N);
-    console.log('Matrix F: ');
-    matrixF.printMatrix();
+    let matrixF = new mx.Matrix(5, 5);
+    matrixF.copyMatrix(matrixH);
+    // matrixF.printMatrix();
+    matrixF.encryptMatrix(d, N);
 
-    /*
-        Шаг 2. Боб, получив зашифрованный граф F , задает Алисе один
-        из двух вопросов
-        1. Каков гамильтонов цикл для графа H?
-        2. Действительно ли граф H изоморфен G?
-    */
-    
-    // Использую следующий: 
-    // Каков гамильтонов цикл для графа H?
+    let stepCount = 3; // Количество итераций повторений протокола
+    let questionNum = mx.getRandomNumber(0, 1);
+    let isVerified = true;
+    for (let t = 0; t < stepCount; t++) {
 
+        switch (questionNum) {
+            case 0:
+                console.log(`Выбран вопрос: 1. Каков гамильтонов цикл для графа H?`);
+                console.log('\nMatrix F: ');
+                matrixF.printMatrix();
+                // Расшифровка в F ребер, образующих Гамильтонов цикл
+                let transcriptions = matrixF.decryptEdgess(matrixG.hamPath, shuffle, c, N);
+                // Проверка расшифровки, путем повторного шифрования и сравнения с F
+                for (let i = 0; i < transcriptions.length; i++) {
+                    console.log('\n-------------------------------------------');
+                    if (crpt.cryptoPow(transcriptions[i].val, d, N) !== matrixF.matrix[transcriptions[i].v1][transcriptions[i].v2]) {
+                        isVerified = false;
+                        console.log("--------------NOT VERIFIED!----------------");
+                        console.log(crpt.cryptoPow(transcriptions[i].val, d, N) + ' !== ' + matrixF.matrix[transcriptions[i].v1][transcriptions[i].v2]);
+                    } else {
+                        console.log(crpt.cryptoPow(transcriptions[i].val, d, N) + ' === ' + matrixF.matrix[transcriptions[i].v1][transcriptions[i].v2]);
+                    }
+                    console.log(JSON.stringify(transcriptions[i]));
+                    console.log(`N: ${N}, d: ${d}, c: ${data.c}`);
+                    console.log('-------------------------------------------');
+                }
+                // Проверка - указанный путь проходит через все вершины ровно по одному разу
+                if (transcriptions.length != matrixG.n) {
+                    isVerified = false;
+                    console.log("--------------NOT VERIFIED!----------------");
+                    console.log("NOT ALL VERTEXES INCLUDED INTO PATH");
+                }
+                for (let i = 0; i < matrixG.n; i++) {
+                    for (let j = 0; j < matrixG.n; j++) {
+                        if (i != j) {
+                            if (transcriptions[i].v1 === transcriptions[j].v1) {
+                                isVerified = false;
+                                console.log("--------------NOT VERIFIED!----------------");
+                                console.log(`The vertex: ${transcriptions[i].v1} repeated (i: ${i}, j: ${j})`);
+                            } else if (transcriptions[i].v2 === transcriptions[j].v2) {
+                                isVerified = false;
+                                console.log("--------------NOT VERIFIED!----------------");
+                                console.log(`The vertex: ${transcriptions[i].v2} repeated (i: ${i}, j: ${j})`);
+                            }
+                        }
+                    }
+                }
+                break;
+            case 1:
+                console.log(`Выбран вопрос: 2. Действительно ли граф H изоморфен G?`);
+                // Расшифровка графа F полностью (передача графа _H)
+                let _H = new mx.Matrix(5, 5);
+                _H.copyMatrix(matrixH);
+                console.log("Matrix _H: ");
+                _H.printMatrix();
+                // Передача перестановок с помощью которых граф H был получен из графа G
+                let permutation = matrixH.permutation;
+                console.log("Permutations G -> H");
+                console.log(JSON.stringify(permutation));
+                // Проверка соответствия матрицы _H матрице F
+                for (let i = 0; i < matrixG.n; i++) {
+                    for (let j = 0; j < matrixG.n; j++) {
+                        if (crpt.cryptoPow(_H.matrix[i][j], d, N) !== matrixF.matrix[i][j]) {
+                            isVerified = false;
+                            console.log("--------------NOT VERIFIED!----------------");
+                            console.log(`The _H vertex: ${_H.matrix[i][j]} doesn\'t match the F vertex: ${matrixF.matrix[i][j]} (result: ${crpt.cryptoPow(_H.matrix[i][j], d, N)})`);
+                        }
+                    }
+                }
+                _H.decodeMatrix();
+                let _G = new mx.Matrix(5, 5);
+                _G.initShuffle(matrixG, permutation); // Получение перестановки для графа G по заданному порядку вершин
+                // Проверка: предъявленные перестановки действительно переводят граф G в граф H
+                let isSame = _G.compareMatrix(_H);
+                if (!isSame) {
+                    console.log("--------------NOT VERIFIED!----------------");
+                    console.log(`The _H matrix: doesn\'t match the _G matrix`);
+                    console.log(`Matrix _H: `);
+                    _H.printMatrix();
+                    console.log(`\nMatrix _G: `);
+                    _G.printMatrix();
+                }
+                break;
+        }
 
-    // Шаг 3
-    // Алиса расшифровывает в F ребра, образующие гамильтонов цикл
-    matrixF.decryptEdgess()
+        if (isVerified === false) {
+            return false;
+        } else {
+            console.log(`\n+_+_+_+_+_+_+Step ${t}: data is verified!+_+_+_+_+_+_+\n`);
+        }
+
+        questionNum = mx.getRandomNumber(0, 1);
+    }
+
+    console.log("-_-_-_-_-_Algorithm finished!_-_-_-_-_-_-");
 }
-
-// let a = 123545;
-// let b = 0;
-
-// console.log(binary(a));
-// console.log(binary(b));
-// console.log(binary(concatNumbers(a, b)));
-
-// console.log(binary(11));
 
 module.exports = {zeroKnowledgeProof}
