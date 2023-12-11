@@ -22,36 +22,38 @@ function zeroKnowledgeProof() {
 
     console.log(`N: ${N}, d: ${d}, c: ${data.c}\n`);
 
+    let stepCount = 3; // Количество итераций повторений протокола
+    let questionNum = mx.getRandomNumber(0, 1);
+    let isVerified = true;
+
     // Граф G
     let matrixG = new mx.Matrix(5, 5);
     matrixG.readFormatMatrix();
     matrixG.readPath();
     console.log('Source matrix: ');
     matrixG.printMatrix();
-
-    // Алиса строит граф H, являющийся копией исходного графа
-    // G, где у всех вершин новые, случайно выбранные номера
-    let matrixH = new mx.Matrix(5, 5);
-    // matrixH.buildPermutation();
-    let shuffle = matrixH.initShuffle(matrixG);
-    console.log('\nShuffle: ' + JSON.stringify(shuffle));
-    console.log('\nIsomorph graph matrix: ');
-    matrixH.printMatrix();
-
-    matrixH.encodeMatrix();
-    console.log('\nMatrix H after encoding: ');
-    matrixH.printMatrix();
-    console.log('\n')
-
-    // Зашифрованная матрица
-    let matrixF = new mx.Matrix(5, 5);
-    matrixF.copyMatrix(matrixH);
-    matrixF.encryptMatrix(d, N);
-
-    let stepCount = 3; // Количество итераций повторений протокола
-    let questionNum = mx.getRandomNumber(0, 1);
-    let isVerified = true;
+    
     for (let t = 0; t < stepCount; t++) {
+        // Алиса строит граф H, являющийся копией исходного графа
+        // G, где у всех вершин новые, случайно выбранные номера
+        let matrixH = new mx.Matrix(5, 5);
+        // matrixH.buildPermutation();
+        let shuffle = matrixH.initShuffle(matrixG);
+        console.log('\nShuffle: ' + JSON.stringify(shuffle));
+        console.log('\nIsomorph graph matrix: ');
+        matrixH.printMatrix();
+
+        matrixH.encodeMatrix();
+        console.log('\nMatrix H after encoding: ');
+        matrixH.printMatrix();
+        console.log('\n')
+
+        // Зашифрованная матрица
+        let matrixF = new mx.Matrix(5, 5);
+        matrixF.copyMatrix(matrixH);
+        matrixF.encryptMatrix(d, N);
+
+    
         switch (questionNum) {
             case 0:
                 console.log(`Выбран вопрос: 1. Каков гамильтонов цикл для графа H?`);
